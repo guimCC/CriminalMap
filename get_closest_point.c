@@ -87,9 +87,14 @@ int main( int argc, char *argv[]){
     double max_dist = 9999;
     for(unsigned i=0; i < numCrim; i++){
         long long int closest_id = get_closest_and_filter(crims[i], nodes, numNod, max_dist);
+        // just write to the file, in the new format, if the filter is passed
+        
         if (closest_id != 0){
-            fprintf(exitF, "%lld;%d;%s", closest_id, crims[i].type, crims[i].date);
-        }
+            fprintf(exitF, "%lld;%d;%s\n", closest_id, crims[i].type, crims[i].date);
+            //printf("Passed %lf %lf %s\n", crims[i].latitud, crims[i].longitud, crims[i].date);
+        }//else{
+            //printf("Skipped %lf %lf %s\n", crims[i].latitud, crims[i].longitud, crims[i].date);
+        //}
     }
     fclose(exitF);
 }
@@ -97,7 +102,7 @@ int main( int argc, char *argv[]){
 
 long long int get_closest_and_filter(crim entry, node* nodes, unsigned numnods, float max_dist){
     float min_dist = FLT_MAX;
-    long long int min_id = NULL;
+    long long int min_id = 0;
     for (unsigned i = 0; i < numnods; i++){
         float dist = distancia(entry, nodes[i]); 
         if (dist < min_dist){
@@ -106,6 +111,7 @@ long long int get_closest_and_filter(crim entry, node* nodes, unsigned numnods, 
         }
     }
 
+    // if the minnimum distance is greater that the max_distance, skip it to filter far points
     if (min_dist > max_dist){
         min_id = 0;
     }
