@@ -9,6 +9,7 @@ class GeoUtils():
         pass
     
     #static method can be used without instancing a class object
+    # returns lat and long given an address
     @staticmethod
     def get_lat_long(address: str) -> Tuple[float, float]:
         response = geocoder.bing(address, key = GeoUtils._geocoder_api)
@@ -16,10 +17,20 @@ class GeoUtils():
         
         return response['lat'], response['lng']
     
+    # returns address given certain lat and long
+    @staticmethod
+    def get_address(lat: float, long: float) -> str:
+        response = geocoder.bing([lat, long], method='reverse', key=GeoUtils._geocoder_api)
+        response = response.json
+                
+        return response['address']
+    
+    # DEPRICATED
     @staticmethod
     def get_state(lat:float, long: float) -> str:
         pass
-        
+    
+    #TODO: get address from lat/long
 
 if __name__ == '__main__':
     #GeoUtil = GeoUtils()

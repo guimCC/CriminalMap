@@ -84,7 +84,9 @@ int main( int argc, char *argv[]){
     exitF=fopen("crims.csv", "w");
 
     //redefinir com convingui
-    double max_dist = 9999;
+    double max_dist;
+    sscanf(argv[1], "%lf", &max_dist);
+    
     for(unsigned i=0; i < numCrim; i++){
         long long int closest_id = get_closest_and_filter(crims[i], nodes, numNod, max_dist);
         // just write to the file, in the new format, if the filter is passed
