@@ -15,6 +15,8 @@ import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 
 from geodata import GeoUtils
@@ -26,10 +28,13 @@ class CrimeGetter(ABC):
         options = webdriver.ChromeOptions()
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--incognito')
-        options.add_argument('--headless')
+        #options.add_argument('--headless')
         #fixed size so always same scope
         options.add_argument('--window-size=1000,1000')
-        options.add_argument("--log-level=3")
+        options.add_argument('--log-level=3')
+        #path = os.getcwd() + "\chrome\chromedriver"
+        #print(path)
+        #options.add_argument('--executable_path='+path)
         #options.add_argument('--start-fullscreen')
         
         self.driver = webdriver.Chrome(service=Service(), options=options)
@@ -165,13 +170,20 @@ class CrimeMapping(CrimeGetter):
         #open the main page
         parsed_address = urllib.parse.quote(address)
         self.driver.get("https://www.crimemapping.com/map/location/{}".format(parsed_address))
-        print("https://www.crimemapping.com/map/location/{}".format(parsed_address))
-        time.sleep(TIMER)
+        #print("https://www.crimemapping.com/map/location/{}".format(parsed_address))
+        time.sleep(TIMER*4)
+        #time.sleep(2)
+        # we will perform a zoom out via Ctrl + minus
 
+        act = ActionChains(self.driver)
+        act.key_down(Keys.CONTROL).send_keys('-').key_up(Keys.CONTROL).perform()
+        time.sleep(TIMER*4)
+        #time.sleep(20)
         # try to click on accept cookies
         try:
             self.driver.find_element(By.XPATH, "/html/body/div[3]/div[10]/ul/li[6]/a").click()
-            time.sleep(TIMER)
+            time.sleep(TIMER*4)
+            #time.sleep(2)
         except:
             #fer un proper raise.
             print("Element not found")
@@ -203,14 +215,15 @@ if __name__ == '__main__':
     #addresses xungues
     address = '500 W L St, Wilmington, CA'
     
-    CrimeHandler = SpotCrime()
-    source = CrimeHandler.get_main_page(address)
-    entries = CrimeHandler.get_crime_entries(source)
-    results = CrimeHandler.parse_crime_entries(entries)
-    CrimeHandler.store_crime_entries(results, 'caca')
+    #CrimeHandler = SpotCrime()
+    #source = CrimeHandler.get_main_page(address)
+    #entries = CrimeHandler.get_crime_entries(source)
+    #results = CrimeHandler.parse_crime_entries(entries)
+    #CrimeHandler.store_crime_entries(results, 'caca')
     
     CrimeHandler2 = CrimeMapping()
     source = CrimeHandler2.get_main_page(address)
+    #time.sleep(30)
     entries = CrimeHandler2.get_crime_entries(source)
     results = CrimeHandler2.parse_crime_entries(entries)
     CrimeHandler2.store_crime_entries(results, 'caca')
