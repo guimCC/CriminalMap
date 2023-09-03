@@ -14,7 +14,6 @@ class GeoUtils():
     def get_lat_long(address: str) -> Tuple[float, float]:
         response = geocoder.bing(address, key = GeoUtils._geocoder_api)
         response = response.json
-        
         return response['lat'], response['lng']
     
     # returns address given certain lat and long
@@ -25,12 +24,15 @@ class GeoUtils():
                 
         return response['address']
     
-    # DEPRICATED
+    # returns state of a given lat and long
     @staticmethod
     def get_state(lat:float, long: float) -> str:
-        pass
+        response = geocoder.bing([lat, long], method='reverse', key=GeoUtils._geocoder_api)
+        response = response.json
+        return response['state']
 
 
 if __name__ == '__main__':
     #GeoUtil = GeoUtils()
     print(GeoUtils.get_lat_long('200 BLOCK OF E CARSON ST, CA'))
+    print(GeoUtils.get_address(33.831415, -118.27436))

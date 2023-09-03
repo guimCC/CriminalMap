@@ -23,10 +23,9 @@ class CrimeParser():
     def filter_old(self, results):
         return filter(self.filter_old_method, results)
 
-    # WARNING: no funciona doncs no podem fer set de una llista
     def filter_same(self, results):
-        #return list(set(results))
-        return results
+        return list(set(results))
+        #return [list(element) for element in set(tuple(element) for element in results)]
     
     def filter_old_method(self, elemet):
         today = date.today().strftime("%d/%m/%Y")

@@ -1,16 +1,9 @@
-# treure la localització de les dues adreces (google maps)
-# determinar lat i long
-# traçar una línea recta entre aquestes dues
-# equiespaiar cada x distància certes lat long al camí
-# obtenir adreça d'aquestes lat long
-# fer cerques a les webs en el format necessari d'aquests resultats
-# cressref dels esdeveniments
-# info inp i rankejar
 import time
 from datetime import datetime
 from abc import ABC, abstractmethod
 import urllib.parse
 import os
+from typing import Tuple
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -28,7 +21,7 @@ class CrimeGetter(ABC):
         options = webdriver.ChromeOptions()
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--incognito')
-        #options.add_argument('--headless')
+        options.add_argument('--headless')
         #fixed size so always same scope
         options.add_argument('--window-size=1000,1000')
         options.add_argument('--log-level=3')
@@ -39,16 +32,13 @@ class CrimeGetter(ABC):
         
         self.driver = webdriver.Chrome(service=Service(), options=options)
 
-    def get_main_page(self, address: str):
+    def get_main_page(self, lat: float, long: float):
         """
 
         Args:
             address (str): Address, including STATE, example: 123 STREET, CA
         """
-        # extreure estat i guardar-lo en self.state -> es cridará super() i seguirá
-        lat, long = GeoUtils.get_lat_long(address)
-        self.state = address.split(",")[-1]
-        return lat, long, address
+        self.state = GeoUtils.get_state(lat, long)
     
     @abstractmethod
     def get_crime_entries(self):
@@ -64,7 +54,7 @@ class CrimeGetter(ABC):
         """
         #transformar time a comú
         for i, element in enumerate(elements):
-            new_element = [self.set_gravity_level(element[0].lower()), GeoUtils.get_lat_long(element[1]), datetime.strptime(element[2], self.date_format).strftime('%d/%m/%Y')]
+            new_element = (self.set_gravity_level(element[0].lower()), GeoUtils.get_lat_long(element[1]), datetime.strptime(element[2], self.date_format).strftime('%d/%m/%Y'))
             elements[i] = new_element
         return elements
         
@@ -118,9 +108,8 @@ class SpotCrime(CrimeGetter):
         super().__init__()
         self.date_format = "%m/%d/%Y %H:%M %p"
     
-    def get_main_page(self, address: str) -> "webdriver.Chrome().page_source":
-        lat, long, address = super().get_main_page(address)
-        
+    def get_main_page(self, lat: float, long: float) -> "webdriver.Chrome().page_source":
+        super().get_main_page(lat, long)
         #open the main page
         self.driver.get("https://spotcrime.com/map?lat={}&lon={}&address=".format(lat, long))
         time.sleep(TIMER)
@@ -142,7 +131,7 @@ class SpotCrime(CrimeGetter):
 
         return self.driver.page_source
 
-    def get_crime_entries(self, page_source: "webdriver.Chrome().page_source"):
+    def get_crime_entries(self, page_source: "webdriver.Chrome().page_source") -> Tuple[str, str, str]:
         
         soup = BeautifulSoup(page_source, 'lxml')
 
@@ -155,7 +144,7 @@ class SpotCrime(CrimeGetter):
             element_address = element.find_all('span', class_='map-page__crime-list__crime-card-address')[0].get_text()
             element_date = element.find_all('span', class_='map-page__crime-list__crime-card-date')[0].get_text()
             
-            elements.append([element_title, element_address + ", {}".format(self.state), element_date])
+            elements.append((element_title, element_address + ", {}".format(self.state), element_date))
             
         return elements
     
@@ -164,8 +153,9 @@ class CrimeMapping(CrimeGetter):
         super().__init__()
         self.date_format = "%m-%d-%Y %H:%M %p"
         
-    def get_main_page(self, address: str) -> "webdriver.Chrome().page_source":
-        lat, long, address = super().get_main_page(address)
+    def get_main_page(self, lat: float, long: float) -> "webdriver.Chrome().page_source":
+        super().get_main_page(lat, long)
+        address = GeoUtils.get_address(lat, long)
         
         #open the main page
         parsed_address = urllib.parse.quote(address)
@@ -192,7 +182,7 @@ class CrimeMapping(CrimeGetter):
         #retornar una array de pages, si n'hi ha
         return self.driver.page_source
 
-    def get_crime_entries(self, page_source: "webdriver.Chrome().page_source"):
+    def get_crime_entries(self, page_source: "webdriver.Chrome().page_source") -> Tuple[str, str, str]:
         
         soup = BeautifulSoup(page_source, 'lxml')
 
@@ -205,8 +195,7 @@ class CrimeMapping(CrimeGetter):
             element_address = fields[4].get_text()
             element_date = fields[6].get_text()
             
-            elements.append([element_title, element_address, element_date])
-            #print(elements[-1], '\n')
+            elements.append((element_title, element_address, element_date))
         return elements
 
 
