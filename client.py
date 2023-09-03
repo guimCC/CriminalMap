@@ -62,23 +62,30 @@ class CrimeMapClient():
         # than 1. In order to determine in which direction shall we iterate
         
         m0 = (lat2 - lat1) / (long2 - long1)
+        #if long2 - long1 < 0:
+        #    m0 = -m0
         points = []
         
         if abs(m0) < 1:
             # If the line has a slope less than 1, we will iterate over longitude
             it0 = long1
+            itS = int((long2 - long1) / abs(long2 - long1))
             st0 = lat1
+            stS = int((lat2 - lat1) / abs(lat2 - lat1))
             lim = abs(long2 - long1) / self.ITER
             m = m0
         else:
             it0 = lat1
+            itS = (lat2 - lat1) / abs(lat2 - lat1)
             st0 = long1
+            stS = (long2 - long1) / abs(long2 - long1)
             lim = abs(lat2 - lat1) / self.ITER
             # Must invert slope since approach from different angle
             m = 1/m0
+        print("it0:", it0, "itS:", itS, "st0:", st0, "stS:", stS, "m:", m)
         for i in range(int(lim)):
-            iti = it0 + self.ITER * i
-            sti = st0 + self.ITER * i * m
+            iti = it0 + self.ITER * i * itS
+            sti = st0 + self.ITER * i * abs(m) * stS
             
             if abs(m0) > 1:
                 points.append((iti, sti))
@@ -115,7 +122,7 @@ if __name__ == "__main__":
     address2 = '1306 E Anaheim St, Wilmington, CA'
     
     
-    points = Client.trace_route_points(0, 0, 1, 2)
+    points = Client.trace_route_points(0, 0, 2, -1)
     
     for point in points:
         print(point)

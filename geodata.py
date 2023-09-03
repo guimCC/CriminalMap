@@ -29,8 +29,7 @@ class GeoUtils():
     @staticmethod
     def get_state(lat:float, long: float) -> str:
         pass
-    
-    #TODO: get address from lat/long
+
 
 if __name__ == '__main__':
     #GeoUtil = GeoUtils()
