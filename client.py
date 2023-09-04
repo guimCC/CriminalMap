@@ -20,7 +20,7 @@ class CrimeMapClient():
     
     def get_map_data(self, n, s, e, o):
         self.map_getter.get_data(n, s, e, o)
-        self.map_getter.store_data("nodes.csv", "camins.csv")
+        self.map_getter.store_data("nodes.csv", "roads.csv")
     
     def get_crime_data(self, lat, long):
         total_results = []

@@ -5,7 +5,7 @@
 #include <float.h>
 
 #define R 6371
-#define graus 3.1415926536/180
+#define degrees 3.1415926536/180
 
 
 typedef struct{
@@ -125,12 +125,12 @@ double distancia(crim a, node b){
     // Implementacó de la funció heurística, que calcula la distància entre dos punts geogràficament
     // en metres
     double d, x1, y1, z1, x2, y2, z2;
-    x1=R*cos(a.longitud*graus)*cos(a.latitud*graus);
-    y1=R*sin(a.longitud*graus)*cos(a.latitud*graus);
-    z1=R*sin(a.latitud*graus);
-    x2=R*cos(b.longitud*graus)*cos(b.latitud*graus);
-    y2=R*sin(b.longitud*graus)*cos(b.latitud*graus);
-    z2=R*sin(b.latitud*graus);
+    x1=R*cos(a.longitud*degrees)*cos(a.latitud*degrees);
+    y1=R*sin(a.longitud*degrees)*cos(a.latitud*degrees);
+    z1=R*sin(a.latitud*degrees);
+    x2=R*cos(b.longitud*degrees)*cos(b.latitud*degrees);
+    y2=R*sin(b.longitud*degrees)*cos(b.latitud*degrees);
+    z2=R*sin(b.latitud*degrees);
     d=(x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2);
     return sqrt(d)*(double)1000.;
 }

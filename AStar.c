@@ -5,8 +5,8 @@
 #include <float.h>
 
 #define R 6371
-#define graus 3.1415926536/180
-#define MAXARST 20
+#define DEG 3.1415926536/180
+#define MAXEDGE 20
 
 // Structure to make decisions easily
 typedef char bool;
@@ -18,54 +18,54 @@ enum
 
 // Structure that contains info about the edges
 typedef struct{
-    char carrer[12];
+    char road[12];
     unsigned numnode;
-    double llargada;
-}infoaresta;
+    double length;
+}infoedge;
 
 // Structure that contains node info not relevant to A*
 typedef struct{
     long long int id;
-    double latitud, longitud;
-    int narst;
-    infoaresta arestes[MAXARST];
+    double lat, longt;
+    int nedge;
+    infoedge edges[MAXEDGE];
 }node;
 
 // Structure that contains relevant node info to A*
 typedef struct{
-    double dist_origen;
-    double pes;
-    unsigned anterior;
+    double dist_origin;
+    double weight;
+    unsigned previous;
     bool IsOpen;
-}EstatAe;
+}StateAe;
 
 // Structure for queue elements
 typedef struct Element{
     unsigned node;
-    struct Element * seg;
-}ElementCua;
+    struct Element * next;
+}ElementQueue;
 
 // Queue struct
 typedef struct{
-    ElementCua * inici, * final;
-}UnaCua;
+    ElementQueue * start, * finish;
+}Queue;
 
-void imprimirtaula(node *nodes, unsigned numnod);
-void posar_amb_prioritat(UnaCua *, unsigned, EstatAe *);
-void treureNelement(UnaCua *, unsigned);
-unsigned buscapunt(long long int ident, node l[], unsigned nnodes);
-double distancia(node, node);
-void mostracami(unsigned final, node* nodes, EstatAe* infnodes, unsigned origen_idx);
+void print_table(node *nodes, unsigned numnod);
+void insert_with_priority(Queue *, unsigned, StateAe *);
+void remove_element(Queue *, unsigned);
+unsigned search_node(long long int ident, node l[], unsigned nnodes);
+double distance(node, node);
+void show_path(unsigned finish, node* nodes, StateAe* infnodes, unsigned origin_idx);
 
 int main( int argc, char *argv[]){
     FILE *nodeF;
     node* nodes;
-    EstatAe* infnodes;
+    StateAe* infnodes;
 
     unsigned numnod=0, ll;
 
     if((nodeF=fopen("nodes.csv", "r"))==NULL){
-        printf("No es pot obrir el fitxer\n");
+        printf("Can't open nodes file\n");
         return 1;
     }
 
@@ -73,187 +73,178 @@ int main( int argc, char *argv[]){
         if (ll=='\n'){numnod++;}
     }
 
-    printf("# Dades de %d nodes\n", numnod);
+    printf("# Data from %d nodes\n", numnod);
     rewind(nodeF);
 
     if((nodes = (node *) malloc(numnod *  sizeof(node))) == NULL){
-        printf ("\nNo es possible assignar la memoria necessaria...\n\n");
+        printf ("\nCan't allocate memory...\n\n");
         return 1;
     }
-    if((infnodes = (EstatAe *) malloc(numnod *  sizeof(EstatAe))) == NULL){
-        printf ("\nNo es possible assignar la memoria necessaria...\n\n");
+    if((infnodes = (StateAe *) malloc(numnod *  sizeof(StateAe))) == NULL){
+        printf ("\nCan't allocate memory...\n\n");
         return 1;
     }
     
-    // Llegim l'informació dels nodes i els guardem al vector de nodes principal 
+    // Reading node info and storing it to an array 
     for(unsigned i=0; i<numnod; i++){
-        fscanf(nodeF, "%lld;%lf;%lf\n", &(nodes[i].id), &(nodes[i].latitud), &(nodes[i].longitud));
+        fscanf(nodeF, "%lld;%lf;%lf\n", &(nodes[i].id), &(nodes[i].lat), &(nodes[i].longt));
     }
     fclose(nodeF);
 
-    FILE *carrerF;
-    unsigned posant;
-    unsigned pos;
+    FILE *roadF;
+    unsigned insertfirst;
+    unsigned insertsecond;
     unsigned c;
 
-    char idcarrer[12];
+    char idroad[12];
     long long int idnode;
 
-    if((carrerF=fopen("Carrers.csv", "r"))==NULL){
-        printf("No es pot obrir el fitxer\n");
+    if((roadF=fopen("roads.csv", "r"))==NULL){
+        printf("Can't open roads file\n");
         return 1;
     }
 
     // We proceed to read information about the roads
     // making sure they exist
-    while((c=fgetc(carrerF))!=(unsigned)EOF){
-        fscanf(carrerF,"d=%[0-9]", idcarrer);
-        fscanf(carrerF, ";%lld", &idnode);
+    while((c=fgetc(roadF))!=(unsigned)EOF){
+        fscanf(roadF,"d=%[0-9]", idroad);
+        fscanf(roadF, ";%lld", &idnode);
         // Keep calling method to check if the node exists
-        posant=buscapunt(idnode, nodes, numnod);
-        while((posant==numnod)&&(fgetc(carrerF)!='\n')){
-            printf("# %lld no existeix1\n", idnode);
-            fscanf(carrerF, "%lld", &idnode);
-            posant=buscapunt(idnode, nodes, numnod);
+        insertfirst=search_node(idnode, nodes, numnod);
+        while((insertfirst==numnod)&&(fgetc(roadF)!='\n')){
+            printf("# %lld doesn't exist\n", idnode);
+            fscanf(roadF, "%lld", &idnode);
+            insertfirst=search_node(idnode, nodes, numnod);
         }
-        while(fgetc(carrerF)!='\n'){
-            fscanf(carrerF, "%lld", &idnode);
-            pos=buscapunt(idnode, nodes, numnod);
-            while((pos==numnod)&&(fgetc(carrerF)!='\n')){
-                printf("# %lld no existeix2\n", idnode);
-                fscanf(carrerF, "%lld", &idnode);
-                pos=buscapunt(idnode, nodes, numnod);
+        while(fgetc(roadF)!='\n'){
+            fscanf(roadF, "%lld", &idnode);
+            insertsecond=search_node(idnode, nodes, numnod);
+            while((insertsecond==numnod)&&(fgetc(roadF)!='\n')){
+                printf("# %lld doesn't exist\n", idnode);
+                fscanf(roadF, "%lld", &idnode);
+                insertsecond=search_node(idnode, nodes, numnod);
             }
-            if(pos<numnod){
+            if(insertsecond<numnod){
                 // If an adjacent pair is found, we add the relative information to both nodes
-                double dist = distancia(nodes[pos], nodes[posant]);
-                strcpy(nodes[pos].arestes[nodes[pos].narst].carrer, idcarrer);
-                nodes[pos].arestes[nodes[pos].narst].numnode=posant;
-                nodes[pos].arestes[nodes[pos].narst].llargada=dist;
-                nodes[pos].narst++;
-                strcpy(nodes[posant].arestes[nodes[posant].narst].carrer, idcarrer);
-                nodes[posant].arestes[nodes[posant].narst].numnode=pos;
-                nodes[posant].arestes[nodes[posant].narst].llargada=dist;
-                nodes[posant].narst++;
+                double dist = distance(nodes[insertsecond], nodes[insertfirst]);
+                strcpy(nodes[insertsecond].edges[nodes[insertsecond].nedge].road, idroad);
+                nodes[insertsecond].edges[nodes[insertsecond].nedge].numnode=insertfirst;
+                nodes[insertsecond].edges[nodes[insertsecond].nedge].length=dist;
+                nodes[insertsecond].nedge++;
+                strcpy(nodes[insertfirst].edges[nodes[insertfirst].nedge].road, idroad);
+                nodes[insertfirst].edges[nodes[insertfirst].nedge].numnode=insertsecond;
+                nodes[insertfirst].edges[nodes[insertfirst].nedge].length=dist;
+                nodes[insertfirst].nedge++;
 
             }
-            posant=pos;
+            insertfirst=insertsecond;
         }
     }
-    fclose(carrerF);
-    printf("# Carrers pujats\n");
+    fclose(roadF);
+    printf("# Roads uploaded\n");
 
-    // Un cop tenim tots els nodes carregats, anem a actualitzar la distància respecte
-    // el final amb la funció distància
+    // We get start and finish nodes from the command line
+    long long int origin_id;
+    sscanf(argv[1], "%lld", &origin_id);
 
-    // Obtenim com a arguments passats per consola els nodes d'inici i final
-    long long int origen_id;
-    sscanf(argv[1], "%lld", &origen_id);
+    long long int destiny_id;
+    sscanf(argv[2], "%lld", &destiny_id);
 
-    long long int desti_id;
-    sscanf(argv[2], "%lld", &desti_id);
+    unsigned origin_idx = search_node(origin_id, nodes, numnod);
+    unsigned destiny_idx = search_node(destiny_id, nodes, numnod);
 
-    unsigned origen_idx = buscapunt(origen_id, nodes, numnod);
-    unsigned desti_idx = buscapunt(desti_id, nodes, numnod);
-
-
-    if (origen_idx != numnod && desti_idx != numnod){
-        printf("# Correcte, nodes trobats.\n");
+    if (origin_idx != numnod && destiny_idx != numnod){
+        printf("# Origin and destiny found.\n");
     }else{
-        printf("No s'han trobat els nodes.\n");
+        printf("Origin and destiny not found.\n");
         return 1;
     }
     
-    // Marquem tots els nodes com a tancats i amb distància màxima a l'origen
+    // Mark all nodes with the desidered preconditions
     for(unsigned i=0; i<numnod; i++){
-        infnodes[i].dist_origen = FLT_MAX;
+        infnodes[i].dist_origin = FLT_MAX;
         infnodes[i].IsOpen = false;
         
     }
     
-    // Per al node inicial, definim les constants pertinents de l'A*
-    infnodes[origen_idx].dist_origen = 0;
-    infnodes[origen_idx].anterior = ULONG_MAX;
-    infnodes[origen_idx].pes = distancia(nodes[origen_idx], nodes[desti_idx]);
+    // Defines initial state for origin
+    infnodes[origin_idx].dist_origin = 0;
+    infnodes[origin_idx].previous = ULONG_MAX;
+    infnodes[origin_idx].weight = distance(nodes[origin_idx], nodes[destiny_idx]);
     unsigned node_actual_idx;
-    unsigned node_inici_idx = origen_idx;
+    unsigned node_start_idx = origin_idx;
     float d;
 
-    // Inicialitzem la cua amb el primer node
-    UnaCua cua = {NULL, NULL};
-    posar_amb_prioritat(&cua, origen_idx, infnodes);
+    // Inserts the first node to an empty queue
+    Queue queue = {NULL, NULL};
+    insert_with_priority(&queue, origin_idx, infnodes);
     
 
-    while (cua.inici!=NULL){
-        node_inici_idx = cua.inici->node;
+    while (queue.start!=NULL){
+        node_start_idx = queue.start->node;
 
-        // Condició que indica que hem trobat el node destí pel camí òptim
-        if (nodes[node_inici_idx].id == desti_id){
+        // If condition met, the optimal path has been found
+        if (nodes[node_start_idx].id == destiny_id){
             break;
         }
         // Iterating over child nodes from start
-        for(int i = 0; i < nodes[node_inici_idx].narst; i++){
-            //nova distància  a considerar
-            d = infnodes[node_inici_idx].dist_origen + nodes[node_inici_idx].arestes[i].llargada;
-            node_actual_idx = nodes[node_inici_idx].arestes[i].numnode;
-            if (d >= infnodes[node_actual_idx].dist_origen){ //comparem amb dist_origen, és el PES que usem només al encuar
+        for(int i = 0; i < nodes[node_start_idx].nedge; i++){
+            // new distance to consider
+            d = infnodes[node_start_idx].dist_origin + nodes[node_start_idx].edges[i].length;
+            node_actual_idx = nodes[node_start_idx].edges[i].numnode;
+            if (d >= infnodes[node_actual_idx].dist_origin){ // weight when enqueuing
                 continue;
             }else{
 
                 if (infnodes[node_actual_idx].IsOpen == true){ 
-                        // mirem que el node estigui actualment obert. Si així és, el traiem
-                        // per a posar-lo en prioritat a continuació
-                    treureNelement(&cua, node_actual_idx);
+                        // if node is actualle enqueued, must remove it to add it with priority
+                    remove_element(&queue, node_actual_idx);
                 }
-                infnodes[node_actual_idx].anterior = node_inici_idx;
-                // Per a maximitzar l'eficiència de l'algorisme s'ha usat l'optimització presentada a la diapo
-                // 120 de l'últim pdf. On a l'estructura de supost no guardem la distància al destí,
-                // la recuperem a través del pes. A part, només la calculem quan expandim
-                // un node per primer cop
-                infnodes[node_actual_idx].pes = d + ((infnodes[node_actual_idx].dist_origen == FLT_MAX) ? 
-                distancia(nodes[node_actual_idx], nodes[desti_idx]) :  infnodes[node_actual_idx].pes - infnodes[node_actual_idx].dist_origen);
+                infnodes[node_actual_idx].previous = node_start_idx;
+                // To optimize, we just store nodes' weignt, not distance to destiny
+                // And we compute this just once
+                infnodes[node_actual_idx].weight = d + ((infnodes[node_actual_idx].dist_origin == FLT_MAX) ? 
+                distance(nodes[node_actual_idx], nodes[destiny_idx]) :  infnodes[node_actual_idx].weight - infnodes[node_actual_idx].dist_origin);
                 
-                infnodes[node_actual_idx].dist_origen = d;
-                infnodes[node_actual_idx].IsOpen = true; //estigui ja dins o no, marquem que ho estarà d'ara en endavant.
+                infnodes[node_actual_idx].dist_origin = d;
+                infnodes[node_actual_idx].IsOpen = true; // The enqueued node will now be markt as
 
-                posar_amb_prioritat(&cua, node_actual_idx, infnodes);
+                insert_with_priority(&queue, node_actual_idx, infnodes);
 
             }
         }
-        infnodes[node_inici_idx].IsOpen = false; //marquem que ja no està dins de la cua, tot i que pot tornar a entrar-hi
-        // traiem el primer element
-        treureNelement(&cua, node_inici_idx);
+        infnodes[node_start_idx].IsOpen = false; // Marks the node as dequeued
+        // Once finished, remove the expanded element
+        remove_element(&queue, node_start_idx);
     }
-    if (node_inici_idx == desti_idx){
-        printf("# S'ha trobat el cami\n");
-        mostracami(node_inici_idx, nodes, infnodes, origen_idx);
+    if (node_start_idx == destiny_idx){
+        printf("# Path found\n");
+        show_path(node_start_idx, nodes, infnodes, origin_idx);
     }else{
-        printf("No s'ha trobat el cami\n");
+        printf("Path not found\n");
     }
 }
 
 
-void imprimirtaula(node *nodes, unsigned numnod){
-    // funció per a imprimir la taula de nodes amb les serves respectives connexions
-    // usada com a suport en la fase de desenvolupamentS 
+void print_table(node *nodes, unsigned numnod){
+    // Prints nodes and their connections, used in development
     for(unsigned i=0;i<numnod;i++){
         printf("%u: ", i);
         printf("id: %lli",nodes[i].id);
-        printf(" latitud: %lf",nodes[i].latitud);
-        printf(" longitud: %lf; adjacents: ", nodes[i].longitud);
-        for(int j = 0; j < nodes[i].narst; j++){
-            printf(" %u (%s)", nodes[i].arestes[j].numnode, nodes[i].arestes[j].carrer);
+        printf(" lat: %lf",nodes[i].lat);
+        printf(" longt: %lf; adjacent: ", nodes[i].longt);
+        for(int j = 0; j < nodes[i].nedge; j++){
+            printf(" %u (%s)", nodes[i].edges[j].numnode, nodes[i].edges[j].road);
         }
         printf("\n");
     }
 }
 
-unsigned buscapunt(long long int ident, node l[], unsigned nnodes){
+unsigned search_node(long long int ident, node l[], unsigned nnodes){
     int lftIdx = 0;
     int rgtIdx = nnodes-1;
 
-    // S'ha implementat una cerca binària usant que els nodes estan ordenats,
-    // Així s'aconsegueix més eficiència
+    // Binary search to locate nodes
     while (lftIdx <= rgtIdx){
         int midIdx = lftIdx + (rgtIdx - lftIdx)/2; //fem d'aquesta manera per a evitar fer la suma que necessitaria més memòria
         if (l[midIdx].id == ident){
@@ -267,94 +258,92 @@ unsigned buscapunt(long long int ident, node l[], unsigned nnodes){
     return nnodes;
 }
 
-double distancia(node a, node b){
-    // Implementacó de la funció heurística, que calcula la distància entre dos punts geogràficament
-    // en metres
+double distance(node a, node b){
+    // Implementation of the basic heuristic function, which computes the dinstace
+    // betwhen two points on the surface of the earth
     double d, x1, y1, z1, x2, y2, z2;
-    x1=R*cos(a.longitud*graus)*cos(a.latitud*graus);
-    y1=R*sin(a.longitud*graus)*cos(a.latitud*graus);
-    z1=R*sin(a.latitud*graus);
-    x2=R*cos(b.longitud*graus)*cos(b.latitud*graus);
-    y2=R*sin(b.longitud*graus)*cos(b.latitud*graus);
-    z2=R*sin(b.latitud*graus);
+    x1=R*cos(a.longt*DEG)*cos(a.lat*DEG);
+    y1=R*sin(a.longt*DEG)*cos(a.lat*DEG);
+    z1=R*sin(a.lat*DEG);
+    x2=R*cos(b.longt*DEG)*cos(b.lat*DEG);
+    y2=R*sin(b.longt*DEG)*cos(b.lat*DEG);
+    z2=R*sin(b.lat*DEG);
     d=(x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2);
     return sqrt(d)*(double)1000.;
 }
 
-void posar_amb_prioritat(UnaCua* cua, unsigned nou, EstatAe *infnodes){
-    register ElementCua * tmp;
-    if((tmp = (ElementCua *) malloc(sizeof(ElementCua))) == NULL)
+void insert_with_priority(Queue* queue, unsigned new, StateAe *infnodes){
+    register ElementQueue * tmp;
+    if((tmp = (ElementQueue *) malloc(sizeof(ElementQueue))) == NULL)
         {
-            printf ("\nNo es possible assignar la memoria necessaria...\n\n");
+            printf ("\nCan't allocate memory...\n\n");
         }
-    tmp->node = nou;
-    tmp->seg=NULL;
-    if(cua->inici == NULL){
-        cua->inici=tmp;
+    tmp->node = new;
+    tmp->next=NULL;
+    if(queue->start == NULL){
+        queue->start=tmp;
     }else{
-        if (infnodes[nou].pes < infnodes[cua->inici->node].pes){
-            tmp->seg=cua->inici;
-            cua->inici=tmp;
+        if (infnodes[new].weight < infnodes[queue->start->node].weight){
+            tmp->next=queue->start;
+            queue->start=tmp;
         }
         else{
-            ElementCua* anterior = cua->inici;
-            // Com que estem insertant amb prioritat, anirem recorrent la cua fins
-            // a trobar-nos amb la posició a la qual pertany o arribar al final
-            while(anterior->seg!=NULL && infnodes[anterior->seg->node].pes < infnodes[nou].pes){
-                anterior=anterior->seg;
+            ElementQueue* previous = queue->start;
+            // To insert with priority, we traverse the queue till the position is found
+            while(previous->next!=NULL && infnodes[previous->next->node].weight < infnodes[new].weight){
+                previous=previous->next;
             }
-            tmp->seg=anterior->seg;
-            anterior->seg=tmp;
+            tmp->next=previous->next;
+            previous->next=tmp;
         }
     }
 }
 
 
-void treureNelement(UnaCua * cua, unsigned node){
-    // anem recorrent la cua fins a trobar-nos amb el node buscat. Llavors, el desencuem
-    // i netegem la memòria corresponent.
-    if(cua->inici->node==node){
-        ElementCua *tmp = cua->inici;
-        cua->inici=cua->inici->seg;
+void remove_element(Queue * queue, unsigned node){
+    // Traverse the queue till the element is found
+    if(queue->start->node==node){
+        ElementQueue *tmp = queue->start;
+        queue->start=queue->start->next;
         free(tmp);
     }else{
-        ElementCua *actual=cua->inici;
-        while((actual->seg!=NULL) && (actual->seg->node != node)){
-            actual=actual->seg;
+        ElementQueue *actual=queue->start;
+        while((actual->next!=NULL) && (actual->next->node != node)){
+            actual=actual->next;
         }
-        if(actual->seg!=NULL){
-            ElementCua *tmp = actual->seg;
-            actual->seg = tmp->seg;
+        if(actual->next!=NULL){
+            ElementQueue *tmp = actual->next;
+            actual->next = tmp->next;
             free(tmp);
         }
     }    
 }
 
-void mostracami(unsigned final, node* nodes, EstatAe* infnodes, unsigned origen_idx){
-    printf("# La distancia de %lld a %lld es de %f metres.\n", nodes[origen_idx].id, nodes[final].id, infnodes[final].dist_origen);
-    printf("# Cami optim:\n");
+void show_path(unsigned finish, node* nodes, StateAe* infnodes, unsigned origin_idx){
+    printf("# Distance from %lld to %lld is %f meters.\n", nodes[origin_idx].id, nodes[finish].id, infnodes[finish].dist_origin);
+    printf("# Optimal path:\n");
 
     unsigned* index_buffer = NULL;
     int c = 0;
-    unsigned actual = final;
+    unsigned actual = finish;
     // Anem fent de forma dinàmica un vector que ens servirà per a recórrer el camí en el sentit correcte.
-    while (actual != origen_idx){
+    while (actual != origin_idx){
         if((index_buffer = (unsigned * ) realloc(index_buffer, (c + 1) * sizeof(unsigned))) == NULL){
-            printf ("\nNo es possible reassignar la memoria necessaria...\n\n");
+            printf ("\nCan't reallocate memory...\n\n");
         }
         index_buffer[c] = actual;
-        actual = infnodes[actual].anterior;
+        actual = infnodes[actual].previous;
         c++;
     }
     if((index_buffer = (unsigned * ) realloc(index_buffer, (c + 1) * sizeof(unsigned))) == NULL){
-            printf ("\nNo es possible reassignar la memoria necessaria...\n\n");
+            printf ("\nCan't reallocate memory...\n\n");
         }
         index_buffer[c] = actual;
-        actual = infnodes[actual].anterior;
+        actual = infnodes[actual].previous;
         c++;
     
     for(int idx = c-1; idx >= 0; idx--){
-        printf("Id=%lld | %f | %f | Dist=%f\n", nodes[index_buffer[idx]].id, nodes[index_buffer[idx]].latitud, nodes[index_buffer[idx]].longitud, infnodes[index_buffer[idx]].dist_origen);
+        printf("Id=%lld | %f | %f | Dist=%f\n", nodes[index_buffer[idx]].id, nodes[index_buffer[idx]].lat, nodes[index_buffer[idx]].longt, infnodes[index_buffer[idx]].dist_origin);
     }
     printf("# ---------------------------------\n");
 }
