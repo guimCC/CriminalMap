@@ -41,7 +41,7 @@ class CrimeMapClient():
         max_length = 999
         
         # Execute C routine
-        subprocess.run(["routine.exe", str(max_length)])
+        subprocess.run(["routine_filter_and_close.exe", str(max_length)])
         #print("final")
         #return data
     
