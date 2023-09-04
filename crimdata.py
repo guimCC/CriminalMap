@@ -201,7 +201,7 @@ class CrimeMapping(CrimeGetter):
 
 if __name__ == '__main__':
     
-    #addresses xungues
+    #addresses xungues 
     address = '500 W L St, Wilmington, CA'
     
     #CrimeHandler = SpotCrime()
