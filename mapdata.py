@@ -3,7 +3,7 @@ import overpass
 
 class MapData():
     def __init__(self) -> None:
-        self.api = overpass.API(debug=True)
+        self.api = overpass.API(debug=False)
         self._format = "json"
     
     def get_data(self, n: float, s: float, e: float, w: float) -> bool:

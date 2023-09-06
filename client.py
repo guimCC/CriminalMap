@@ -13,7 +13,7 @@ from crimpars import CrimeParser
 class CrimeMapClient():
     def __init__(self) -> None:
         self.map_getter = MapData()
-        self.crime_getters = [SpotCrime(), CrimeMapping()]
+        #self.crime_getters = [SpotCrime(), CrimeMapping()]
         #self.spotcrime = SpotCrime()
         self.data_parser = CrimeParser(4)
         self.ITER = 0.02
@@ -94,23 +94,33 @@ class CrimeMapClient():
         points.append((lat2, long2))
         return points
         
+    def get_start_end_cords(self, slat, slong, elat, elong):
+        # Returns closest node to both the start and end address
+        sid = subprocess.run(["routine_get_closest.exe", str(slat), str(slong)],
+                             capture_output=True,
+                             text=True)
+        eid = subprocess.run(["routine_get_closest.exe", str(elat), str(elong)],
+                             capture_output=True,
+                             text=True)
+        return sid.stdout.rstrip(), eid.stdout.rstrip()
+    
     def find_closest_route(self, data):
         pass
         
     def main(self, address1, address2):
         
         # we get it's coordinates, don't compute more than one time
-        lat1, long1 = GeoUtils.get_lat_long(address1)
-        lat2, long2 = GeoUtils.get_lat_long(address2)
+        slat, slong = GeoUtils.get_lat_long(address1)
+        elat, elong = GeoUtils.get_lat_long(address2)
         
         # retrieve the map's boundaries
-        nB, sB, eB, oB = self.get_boundaries(lat1, long1, lat2, long2)
+        nB, sB, eB, oB = self.get_boundaries(slat, slong, elat, elong)
         
         # retrieve and store the map
         self.get_map_data(nB, sB, eB, oB)
         
         # get points along a straight line to retrieve crime from
-        points = self.trace_route_points(lat1, long1, lat2, long2)
+        points = self.trace_route_points(slat, slong, elat, elong)
         
         # get crime entries of all the points along the line
         crime_entries = []
@@ -120,11 +130,8 @@ class CrimeMapClient():
         # filter data and relate to closest point
         self.parse_crime_data(crime_entries)
         
-        
-        
-        
-    
-        
+        # get closest ids from start and end
+        sid, eid = self.get_start_end_cords(slat, slong, elat, elong)
         
 
 if __name__ == "__main__":
