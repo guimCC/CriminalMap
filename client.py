@@ -42,8 +42,7 @@ class CrimeMapClient():
         
         # Execute C routine
         subprocess.run(["routine_filter_and_close.exe", str(max_length)])
-        #print("final")
-        #return data
+        #TODO: Add error handling
     
     def get_boundaries(self, lat1, long1, lat2, long2):
         # returns -> n, s, e, o
