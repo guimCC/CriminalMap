@@ -13,9 +13,7 @@ class MapData():
         self.data = self.api.get(MapQuery, responseformat = self._format)
     
     def store_data(self, node_file_name: str, way_file_name: str) -> bool:
-        # check the last update
-        # TODO: correct file name. Coords?
-        # TODO: 
+
         with open(node_file_name, 'w') as node_file, open(way_file_name, 'w') as way_file:
             for element in self.data["elements"]:
                 if element["type"] == "node":

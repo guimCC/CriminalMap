@@ -58,20 +58,6 @@ class CrimeGetter(ABC):
             elements[i] = new_element
         return elements
         
-    #realment no ens caldrà pq passarem per python i no borrarem aquí
-    def store_crime_entries(self, elements, filename):
-        #borrem fitxer de dades si cal
-        for element in elements:
-            print(element)
-        return
-        #TODO: això només ho farem un cop abans de començar
-        if os.path.exists(filename):
-            os.remove(filename)
-        
-        with open(filename, 'a') as crime_file:
-            for element in elements:
-                crime_file.write(element)
-
     def set_gravity_level(self, element):
         if "vehicle" in element or "driving" in element:
             return 6
