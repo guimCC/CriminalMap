@@ -7,6 +7,7 @@ from crimdata import SpotCrime, CrimeMapping
 from mapdata import MapData
 from geodata import GeoUtils
 from crimpars import CrimeParser
+from mapplot import MapPlotter
 
 
 
@@ -14,8 +15,8 @@ class CrimeMapClient():
     def __init__(self) -> None:
         self.map_getter = MapData()
         self.crime_getters = [SpotCrime(), CrimeMapping()]
-        #self.spotcrime = SpotCrime()
         self.data_parser = CrimeParser(4)
+        self.map_plotter = MapPlotter()
         self.ITER = 0.02
     
     def get_map_data(self, n, s, e, o):
@@ -106,10 +107,12 @@ class CrimeMapClient():
     def find_closest_route(self, start, end, penalty):
         path = subprocess.run(["routine_closest_route.exe", str(start), str(end), str(penalty)], capture_output=True)
         
-    def show_route(self, res_file):
-        #TODO: add module not as functionality
-        subprocess.run(["python Map_plot.py", ])
-    
+    def trace_route(self, map_file):
+        self.map_plotter.get_data(map_file)
+        self.map_plotter.trace_path()
+        
+    def show_map(self, map_file):
+        self.map_plotter.show_map(map_file)
         
     def main(self, address1, address2):
         
@@ -119,6 +122,7 @@ class CrimeMapClient():
         
         # retrieve the map's boundaries
         nB, sB, eB, oB = self.get_boundaries(slat, slong, elat, elong)
+        #print(nB, sB, eB, oB)
         
         # retrieve and store the map
         self.get_map_data(nB, sB, eB, oB)
@@ -139,7 +143,9 @@ class CrimeMapClient():
 
         self.find_closest_route(sid, eid, 100)
         
+        self.trace_route('result.txt')
         
+        self.show_map('result.txt')
         
 
 if __name__ == "__main__":
@@ -149,8 +155,10 @@ if __name__ == "__main__":
     address3 = '1253 W 213th St, Torrance, CA 90502'
     address4 = '161 W 59th Pl, Los Angeles, CA 90003'
     address5 = '128-196 E 59th Pl, Los Angeles, CA 90003'
+    address6 = '201-257 W Lomita Blvd, Carson, CA 90745'
+    address7 = '1367 N Avalon Blvd, Wilmington, CA 90744'
     
-    Client.main(address4, address5)
+    Client.main(address6, address7)
     
     
     

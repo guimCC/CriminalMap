@@ -20,7 +20,8 @@ class MapData():
                 if element["type"] == "way":
                     # Must parse 'building' ways, since represent the boundaries of a building and don't connect
                     # to main road
-                    if 'building' not in element['tags'].keys():
+                    #print(element)
+                    if 'tags' in element.keys() and 'building' not in element['tags'].keys():
                         # If it's not a building, we can write the way down
                         line = "id=" + str(element["id"]) + ";" + \
                             ";".join([str(node) for node in element["nodes"]]) + "\n"
@@ -38,6 +39,7 @@ class MapData():
                     node_file.write(line)
     #TODO: delete test method
     def test(self):
+        
         for element in self.data["elements"]:
             if element['id'] == 411117242:
                 if 'building' in element['tags'].keys():
@@ -52,6 +54,6 @@ class MapData():
 
 if __name__ == '__main__':
     map_handler = MapData()
-    map_handler.get_data(33.98671822, 33.985338580000004, -118.27241058, -118.27644422)
-    map_handler.test()
-    #map_handler.store_data("nodes.csv", "camins.csv")
+    map_handler.get_data(34.0156618075, 33.7568941425, -118.2379236925, -118.30273380749999)
+    #map_handler.test()
+    map_handler.store_data("nodes.csv", "roads.csv")
