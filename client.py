@@ -103,8 +103,8 @@ class CrimeMapClient():
                              text=True)
         return sid.stdout.rstrip(), eid.stdout.rstrip()
     
-    def find_closest_route(self, start, end, penalty, res_file):
-        subprocess.run(["routine_closest_route.exe", str(start), str(end), str(penalty), " > " + res_file])
+    def find_closest_route(self, start, end, penalty):
+        path = subprocess.run(["routine_closest_route.exe", str(start), str(end), str(penalty)], capture_output=True)
         
     def show_route(self, res_file):
         #TODO: add module not as functionality
@@ -119,7 +119,6 @@ class CrimeMapClient():
         
         # retrieve the map's boundaries
         nB, sB, eB, oB = self.get_boundaries(slat, slong, elat, elong)
-        #print(nB, sB, eB, oB)
         
         # retrieve and store the map
         self.get_map_data(nB, sB, eB, oB)
@@ -128,17 +127,17 @@ class CrimeMapClient():
         points = self.trace_route_points(slat, slong, elat, elong)
         
         # get crime entries of all the points along the line
-        crime_entries = []
-        for point in points:
-            crime_entries.extend(self.get_crime_data(point[0], point[1]))
+        #crime_entries = []
+        #for point in points:
+        #    crime_entries.extend(self.get_crime_data(point[0], point[1]))
         
         # filter data and relate to closest point
-        self.parse_crime_data(crime_entries)
+        #self.parse_crime_data(crime_entries)
         
         # get closest ids from start and end
         sid, eid = self.get_start_end_cords(slat, slong, elat, elong)
-        print(sid, eid)
-        self.find_closest_route(sid, eid, 100, "res.txt")
+
+        self.find_closest_route(sid, eid, 100)
         
         
         

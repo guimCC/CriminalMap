@@ -36,7 +36,7 @@ class MapData():
                            str(element["lat"]) + ";" + \
                            str(element["lon"]) + "\n"
                     node_file.write(line)
-    
+    #TODO: delete test method
     def test(self):
         for element in self.data["elements"]:
             if element['id'] == 411117242:

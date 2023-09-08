@@ -362,8 +362,12 @@ void remove_element(Queue * queue, unsigned node){
 }
 
 void show_path(unsigned finish, node* nodes, StateAe* infnodes, unsigned origin_idx){
-    printf("# Distance from %lld to %lld is %f meters.\n", nodes[origin_idx].id, nodes[finish].id, infnodes[finish].dist_origin);
-    printf("# Optimal path:\n");
+    FILE *exitF;
+    if ((exitF=fopen("result.txt", "w"))==NULL){
+        printf("Can't open result file\n");
+    }
+    fprintf(exitF, "# Distance from %lld to %lld is %f meters.\n", nodes[origin_idx].id, nodes[finish].id, infnodes[finish].dist_origin);
+    fprintf(exitF, "# Optimal path:\n");
 
     unsigned* index_buffer = NULL;
     int c = 0;
@@ -385,7 +389,8 @@ void show_path(unsigned finish, node* nodes, StateAe* infnodes, unsigned origin_
         c++;
     
     for(int idx = c-1; idx >= 0; idx--){
-        printf("Id=%lld | %f | %f | Dist=%f\n", nodes[index_buffer[idx]].id, nodes[index_buffer[idx]].lat, nodes[index_buffer[idx]].longt, infnodes[index_buffer[idx]].dist_origin);
+        fprintf(exitF, "Id=%lld | %f | %f | Dist=%f\n", nodes[index_buffer[idx]].id, nodes[index_buffer[idx]].lat, nodes[index_buffer[idx]].longt, infnodes[index_buffer[idx]].dist_origin);
     }
-    printf("# ---------------------------------\n");
+    fprintf(exitF, "# ---------------------------------\n");
+    fclose(exitF);
 }
