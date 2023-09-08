@@ -81,7 +81,7 @@ int main( int argc, char *argv[]){
     }
     fclose(nodeF);
 
-    if ((exitF=fopen("crims.csv", "w"))==NULL){
+    if ((exitF=fopen("crimes.csv", "w"))==NULL){
         printf("Can't open tmp file\n");
         return 1;
     }

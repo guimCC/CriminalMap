@@ -37,6 +37,8 @@ typedef struct{
     double weight;
     unsigned previous;
     bool IsOpen;
+
+    double criminality;
 }StateAe;
 
 // Structure for queue elements
@@ -56,6 +58,7 @@ void remove_element(Queue *, unsigned);
 unsigned search_node(long long int ident, node l[], unsigned nnodes);
 double distance(node, node);
 void show_path(unsigned finish, node* nodes, StateAe* infnodes, unsigned origin_idx);
+double crime_penalisation(int type, int weight);
 
 int main( int argc, char *argv[]){
     FILE *nodeF;
@@ -143,6 +146,38 @@ int main( int argc, char *argv[]){
     fclose(roadF);
     printf("# Roads uploaded\n");
 
+    // Read crime info and insert to state vector and recieve weight
+    FILE* crimeF;
+    int numcrime = 0;
+
+    int weight;
+    sscanf(argv[3], "%d", &weight);
+
+    if((crimeF=fopen("crimes.csv", "r"))==NULL){
+        printf("Can't open crimes file\n");
+        return 1;
+    }
+
+    while((ll=fgetc(crimeF)) != (unsigned)EOF){
+        if (ll=='\n'){numcrime++;}
+    }
+
+    rewind(crimeF);
+
+    long long int crime_id;
+    unsigned crime_idx;
+    int crime_type;
+    float penalty;
+
+    for(unsigned i=0; i<numcrime; i++){
+        fscanf(nodeF, "%lld;%d;%*s\n", &crime_id, &crime_type);
+        crime_idx = search_node(crime_id, nodes, numnod);
+        penalty = crime_penalisation(crime_type, weight);
+        infnodes[crime_idx].criminality = penalty;
+    }
+    fclose(nodeF);
+
+
     // We get start and finish nodes from the command line
     long long int origin_id;
     sscanf(argv[1], "%lld", &origin_id);
@@ -192,7 +227,7 @@ int main( int argc, char *argv[]){
             // new distance to consider
             d = infnodes[node_start_idx].dist_origin + nodes[node_start_idx].edges[i].length;
             node_actual_idx = nodes[node_start_idx].edges[i].numnode;
-            if (d >= infnodes[node_actual_idx].dist_origin){ // weight when enqueuing
+            if (d >= infnodes[node_actual_idx].dist_origin){ // distance when enqueuing
                 continue;
             }else{
 
@@ -203,8 +238,10 @@ int main( int argc, char *argv[]){
                 infnodes[node_actual_idx].previous = node_start_idx;
                 // To optimize, we just store nodes' weignt, not distance to destiny
                 // And we compute this just once
-                infnodes[node_actual_idx].weight = d + ((infnodes[node_actual_idx].dist_origin == FLT_MAX) ? 
-                distance(nodes[node_actual_idx], nodes[destiny_idx]) :  infnodes[node_actual_idx].weight - infnodes[node_actual_idx].dist_origin);
+                // We also add criminal penalty to weight, so it's taken into consideration when inserting 
+                infnodes[node_actual_idx].weight = d + infnodes[node_actual_idx].criminality + ((infnodes[node_actual_idx].dist_origin == FLT_MAX) ? 
+                    distance(nodes[node_actual_idx], nodes[destiny_idx]) :  
+                    infnodes[node_actual_idx].weight - infnodes[node_actual_idx].dist_origin - infnodes[node_actual_idx].criminality);
                 
                 infnodes[node_actual_idx].dist_origin = d;
                 infnodes[node_actual_idx].IsOpen = true; // The enqueued node will now be markt as
@@ -270,6 +307,11 @@ double distance(node a, node b){
     z2=R*sin(b.lat*DEG);
     d=(x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2);
     return sqrt(d)*(double)1000.;
+}
+
+double crime_penalisation(int typec, int weight){
+    double f = 1/1.5588457 * pow(3, typec/4);
+    return (f * 10 + 30 ) * (weight / 10);
 }
 
 void insert_with_priority(Queue* queue, unsigned new, StateAe *infnodes){
