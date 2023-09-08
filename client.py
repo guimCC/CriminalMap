@@ -13,7 +13,7 @@ from crimpars import CrimeParser
 class CrimeMapClient():
     def __init__(self) -> None:
         self.map_getter = MapData()
-        #self.crime_getters = [SpotCrime(), CrimeMapping()]
+        self.crime_getters = [SpotCrime(), CrimeMapping()]
         #self.spotcrime = SpotCrime()
         self.data_parser = CrimeParser(4)
         self.ITER = 0.02
@@ -103,8 +103,13 @@ class CrimeMapClient():
                              text=True)
         return sid.stdout.rstrip(), eid.stdout.rstrip()
     
-    def find_closest_route(self, data):
-        pass
+    def find_closest_route(self, start, end, penalty, res_file):
+        subprocess.run(["routine_closest_route.exe", str(start), str(end), str(penalty), " > " + res_file])
+        
+    def show_route(self, res_file):
+        #TODO: add module not as functionality
+        subprocess.run(["python Map_plot.py", ])
+    
         
     def main(self, address1, address2):
         
@@ -114,6 +119,7 @@ class CrimeMapClient():
         
         # retrieve the map's boundaries
         nB, sB, eB, oB = self.get_boundaries(slat, slong, elat, elong)
+        #print(nB, sB, eB, oB)
         
         # retrieve and store the map
         self.get_map_data(nB, sB, eB, oB)
@@ -131,15 +137,22 @@ class CrimeMapClient():
         
         # get closest ids from start and end
         sid, eid = self.get_start_end_cords(slat, slong, elat, elong)
+        print(sid, eid)
+        self.find_closest_route(sid, eid, 100, "res.txt")
+        
+        
         
 
 if __name__ == "__main__":
     Client = CrimeMapClient()
-    address1 = '500 W L St, Wilmington, CA' # important afegir l'estat i la city
-    address2 = '1306 E Anaheim St, Wilmington, CA'
+    address1 = '500 W L St, Wilmington, CA'
+    address2 = '1000 N Fries Ave, Wilmington, CA 90744'
     address3 = '1253 W 213th St, Torrance, CA 90502'
+    address4 = '161 W 59th Pl, Los Angeles, CA 90003'
+    address5 = '128-196 E 59th Pl, Los Angeles, CA 90003'
     
-    Client.main(address1, address2)
+    Client.main(address4, address5)
+    
     
     
     #points = Client.trace_route_points(0, 0, 2, -1)
