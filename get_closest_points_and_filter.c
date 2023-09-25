@@ -39,7 +39,7 @@ int main( int argc, char *argv[]){
         printf("Can't open nodes file\n");
         return 1;
     }
-
+    
     while ((ll=fgetc(nodeF)) != (unsigned)EOF){
         if (ll=='\n'){numNod++;}
     }

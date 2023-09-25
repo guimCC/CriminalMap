@@ -12,12 +12,16 @@ from mapplot import MapPlotter
 
 
 class CrimeMapClient():
-    def __init__(self) -> None:
+    def __init__(self, ite, m_length, d_limit, penalty) -> None:
+        self.ITER = ite
+        self._max_length = m_length 
+        self._data_limit = d_limit
+        self._penalty = penalty
         self.map_getter = MapData()
         self.crime_getters = [SpotCrime(), CrimeMapping()]
-        self.data_parser = CrimeParser(4)
+        self.data_parser = CrimeParser(self._data_limit)
         self.map_plotter = MapPlotter()
-        self.ITER = 0.02
+         
     
     def get_map_data(self, n, s, e, o):
         self.map_getter.get_data(n, s, e, o)
@@ -34,21 +38,21 @@ class CrimeMapClient():
         return total_results
     
     def parse_crime_data(self, data):
+        print(len(data))
         data = self.data_parser.filter_same(data)
+        print(len(data))
         data = self.data_parser.filter_old(data)
+        print(len(data))
         self.data_parser.store_data(data, 'tmp.csv')
-
-        # Define max_length
-        max_length = 999
         
         # Execute C routine
-        subprocess.run(["routine_filter_and_close.exe", str(max_length)])
+        subprocess.run(["routine_filter_and_close.exe", str(self._max_length)])
         #TODO: Add error handling
     
     def get_boundaries(self, lat1, long1, lat2, long2):
         # returns -> n, s, e, o
         
-        # Can re-define boudary box
+        # Can re-define boundary box
         dl = max(abs(lat1 - lat2), abs(long1 - long2)) * 0.15
         n = max(lat1, lat2) + dl
         s = min(lat1, lat2) - dl
@@ -81,7 +85,7 @@ class CrimeMapClient():
             lim = abs(lat2 - lat1) / self.ITER
             # Must invert slope since approach from different angle
             m = 1/m0
-        #print("it0:", it0, "itS:", itS, "st0:", st0, "stS:", stS, "m:", m)
+
         for i in range(int(lim)):
             iti = it0 + self.ITER * i * itS
             sti = st0 + self.ITER * i * abs(m) * stS
@@ -113,6 +117,10 @@ class CrimeMapClient():
         
     def show_map(self, map_file):
         self.map_plotter.show_map(map_file)
+    
+    @penalty.setter
+    def penalty(self, n_penalty):
+        self._penalty = n_penalty
         
     def main(self, address1, address2):
         
@@ -131,17 +139,17 @@ class CrimeMapClient():
         points = self.trace_route_points(slat, slong, elat, elong)
         
         # get crime entries of all the points along the line
-        #crime_entries = []
-        #for point in points:
-        #    crime_entries.extend(self.get_crime_data(point[0], point[1]))
+        crime_entries = []
+        for point in points:
+            crime_entries.extend(self.get_crime_data(point[0], point[1]))
         
         # filter data and relate to closest point
-        #self.parse_crime_data(crime_entries)
+        self.parse_crime_data(crime_entries)
         
         # get closest ids from start and end
         sid, eid = self.get_start_end_cords(slat, slong, elat, elong)
 
-        self.find_closest_route(sid, eid, 100)
+        self.find_closest_route(sid, eid, self._penalty)
         
         self.trace_route('result.txt')
         
@@ -149,7 +157,7 @@ class CrimeMapClient():
         
 
 if __name__ == "__main__":
-    Client = CrimeMapClient()
+    Client = CrimeMapClient(0.02, 1000, 10, 100)
     address1 = '500 W L St, Wilmington, CA'
     address2 = '1000 N Fries Ave, Wilmington, CA 90744'
     address3 = '1253 W 213th St, Torrance, CA 90502'
@@ -157,8 +165,11 @@ if __name__ == "__main__":
     address5 = '128-196 E 59th Pl, Los Angeles, CA 90003'
     address6 = '201-257 W Lomita Blvd, Carson, CA 90745'
     address7 = '1367 N Avalon Blvd, Wilmington, CA 90744'
+    address8 = '606 W Sepulveda Blvd, Carson, CA 90745'
+    address9 = '1325 Bay View Ave, Wilmington, CA 90744'
+    address10 = '810 Bay View Ave, Wilmington, CA 90744'
     
-    Client.main(address6, address7)
+    Client.main(address9, address10)
     
     
     

@@ -8,7 +8,7 @@
   The project is structured in 3 + 1 sequential steps which define the general flow of the application. 
 ### Data gathering
   The first step of the process is to get all the data is needed:
-  #### Geospacial data
+  #### Geospatial data
   Using **overpass API** it gathers geospatial data from **OpenStreetMap**, which GPS routing is based on.
   #### Crime data
   Via **Web Scrapping** with **Selenium + BeautifulSoup** crime data is retrieved from different sources (extendable):
