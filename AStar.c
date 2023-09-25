@@ -170,7 +170,7 @@ int main( int argc, char *argv[]){
     float penalty;
 
     for(unsigned i=0; i<numcrime; i++){
-        fscanf(nodeF, "%lld;%d;%*s\n", &crime_id, &crime_type);
+        fscanf(nodeF, "%lld;%d;%*s;%*f;%*f\n", &crime_id, &crime_type);
         crime_idx = search_node(crime_id, nodes, numnod);
         penalty = crime_penalisation(crime_type, weight);
         infnodes[crime_idx].criminality = penalty;

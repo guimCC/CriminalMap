@@ -111,15 +111,19 @@ class CrimeMapClient():
     def find_closest_route(self, start, end, penalty):
         path = subprocess.run(["routine_closest_route.exe", str(start), str(end), str(penalty)], capture_output=True)
         
-    def trace_route(self, map_file):
-        self.map_plotter.get_data(map_file)
-        self.map_plotter.trace_path()
-        
+    def trace_route(self, res_file):
+        map_lat, map_long = self.map_plotter.get_map_data(res_file)
+        self.map_plotter.trace_path(map_lat, map_long)
+    
+    def trace_crimes(self, crim_file):
+        crim_lat, crim_long = self.map_plotter.get_crime_data(crim_file)
+        self.map_plotter.trace_crimes(crim_lat, crim_long)
+    
     def show_map(self, map_file):
         self.map_plotter.show_map(map_file)
     
-    @penalty.setter
-    def penalty(self, n_penalty):
+    def set_penalty(self, n_penalty):
+        #TODO: ADD ASSERTIONS (positive...)
         self._penalty = n_penalty
         
     def main(self, address1, address2):
@@ -152,12 +156,13 @@ class CrimeMapClient():
         self.find_closest_route(sid, eid, self._penalty)
         
         self.trace_route('result.txt')
+        self.trace_crimes('crimes.csv')
         
         self.show_map('result.txt')
         
 
 if __name__ == "__main__":
-    Client = CrimeMapClient(0.02, 1000, 10, 100)
+    Client = CrimeMapClient(0.02, 100, 20, 100)
     address1 = '500 W L St, Wilmington, CA'
     address2 = '1000 N Fries Ave, Wilmington, CA 90744'
     address3 = '1253 W 213th St, Torrance, CA 90502'

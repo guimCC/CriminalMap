@@ -94,7 +94,7 @@ int main( int argc, char *argv[]){
         // just write to the file, in the new format, if the filter is passed
         
         if (closest_id != -1){
-            fprintf(exitF, "%lld;%d;%s\n", closest_id, crimes[i].type, crimes[i].date);
+            fprintf(exitF, "%lld;%d;%s;%lf;%lf\n", closest_id, crimes[i].type, crimes[i].date, crimes[i].lat, crimes[i].longt);
         }
     }
     fclose(exitF);
