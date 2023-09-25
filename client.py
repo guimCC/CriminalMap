@@ -134,7 +134,6 @@ class CrimeMapClient():
         
         # retrieve the map's boundaries
         nB, sB, eB, oB = self.get_boundaries(slat, slong, elat, elong)
-        #print(nB, sB, eB, oB)
         
         # retrieve and store the map
         self.get_map_data(nB, sB, eB, oB)
@@ -175,40 +174,5 @@ if __name__ == "__main__":
     address10 = '810 Bay View Ave, Wilmington, CA 90744'
     
     Client.main(address9, address10)
-    
-    
-    
-    #points = Client.trace_route_points(0, 0, 2, -1)
-    
-    #for point in points:
-    #    print(point)
-    
-    # calculem fora per a haver-ho de fer només un cop
-    #lat1, long1 = GeoUtils.get_lat_long(address1)
-    #lat2, long2 = GeoUtils.get_lat_long(address2)
-    
-    #n, s, e, o = Client.get_boundaries(lat1, long1, lat2, long2)
-    #print(n, s, e, o)
-    #lt = 33.789955575
-    #lng = -118.243220375
-    #print(GeoUtils.get_address(lt, lng))
-    
-    
-    #Client.get_map_data(33.79404351372362, 33.782849842522985, -118.25513428109659, -118.282223947399)
-    #results = Client.get_crime_data(address)
-    #data = Client.parse_crime_data(results)
 
-    #for entry in data:
-    #    print(data)
-    #source = Client.spotcrime.get_main_page(address1)
-    #time.sleep(30)
-    #entries = Client.spotcrime.get_crime_entries(source)
-    #results = Client.spotcrime.parse_crime_entries(entries)
-    #Client.spotcrime.store_crime_entries(results, 'caca')
-    
-    #CrimeHandler = SpotCrime()
-    #source = CrimeHandler.get_main_page(address)
-    #entries = CrimeHandler.get_crime_entries(source)
-    #results = CrimeHandler.parse_crime_entries(entries)
-    #CrimeHandler.store_crime_entries(results, 'caca')
     
